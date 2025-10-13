@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type Props = {
@@ -9,11 +9,32 @@ type Props = {
 };
 
 const ProductCard: React.FC<Props> = ({ id, title, image, price }) => {
+  const ref = useRef<HTMLAnchorElement | null>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          setVisible(true);
+          obs.unobserve(el);
+        }
+      });
+    }, { threshold: 0.15 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
   return (
-    <Link to={`/product/${encodeURIComponent(id)}`} className="block glass-card rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]" style={{width: '100%'}}>
-      <div className="w-full aspect-[5/4] bg-gradient-to-br from-transparent to-black/8 flex items-center justify-center product-image">
+    <Link ref={ref} to={`/product/${encodeURIComponent(id)}`} className={`block glass-card rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02] hover:shadow-xl transform ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'} touch-manage`} style={{width: '100%'}}>
+      <div className="w-full aspect-[5/4] bg-gradient-to-br from-transparent to-black/8 flex items-center justify-center product-image relative overflow-hidden">
         {image ? (
-          <img src={image} alt={title} className="max-h-full object-contain p-3 fade-in" />
+          <>
+            <img src={image} alt={title} className="max-h-full object-contain p-3 fade-in" />
+            <div className="absolute inset-0 pointer-events-none shine opacity-0 hover:opacity-100 transition-opacity duration-300" />
+          </>
         ) : (
           <div className="text-gray-400">Brak zdjęcia</div>
         )}

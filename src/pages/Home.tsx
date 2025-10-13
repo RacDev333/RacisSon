@@ -1,24 +1,67 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { fetchSheetAsJson } from '../services/googleSheets';
+
+const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY';
 
 const Home: React.FC = () => {
-  return (
-    <main className="max-w-[900px] mx-auto px-4 py-20 text-center">
-      <h1 className="text-3xl font-bold mb-4">Katalog produktów (Google Sheets)</h1>
-      <p className="text-gray-600 mb-8">Ten projekt został przerobiony, aby korzystać z Google Sheets jako prostego backendu dla listy produktów. Z linku poniżej przejdziesz do strony z produktami.</p>
-      <div className="space-x-4">
-        <Link to="/products" className="inline-block px-6 py-3 bg-red-600 text-white rounded-md">Zobacz produkty</Link>
-      </div>
+  const [heroItems, setHeroItems] = useState<{ id: string; src?: string }[]>([]);
 
-      <section className="mt-12 text-left">
-        <h2 className="text-xl font-semibold mb-2">Konfiguracja</h2>
-        <ol className="list-decimal list-inside text-gray-700">
-          <li>Otwórz swój arkusz Google i upewnij się, że jest publiczny (Anyone with the link can view).</li>
-          <li>Umieść kolumny: <code>id</code>, <code>title</code>, <code>image</code>, <code>price</code>, <code>description</code>.</li>
-          <li>W plikach <code>src/pages/Products.tsx</code> i <code>src/pages/ProductDetail.tsx</code> ustaw stałą <code>DEFAULT_SPREADSHEET</code> na ID arkusza (część URL między /d/ i /edit).</li>
-          <li>Uruchom aplikację: <code>npm run dev</code> i przejdź do <code>/products</code>.</li>
-        </ol>
-      </section>
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        const rows = await fetchSheetAsJson(DEFAULT_SPREADSHEET);
+        const items = rows.map((r: any) => {
+          const id = (r.id ?? r.ID ?? r.Id ?? '').toString();
+          const raw = r.images ?? r.photos ?? r.image ?? r.photo ?? r.img ?? '';
+          if (!raw) return null;
+          const arr = raw.toString().split(',').map((s: string) => s.trim()).filter(Boolean);
+          return { id, src: arr.length ? arr[0] : undefined };
+        }).filter(Boolean) as { id: string; src?: string }[];
+        if (mounted) setHeroItems(items.slice(0, 3));
+      } catch (err) {
+        console.error('Failed to load hero images', err);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  return (
+    <main className="max-w-[1200px] mx-auto px-6 py-20">
+      <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+        <section className="p-6">
+          <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500">Kolekcja Koszulek Piłkarskich</h1>
+          <p className="text-gray-300 mb-6">Unikalne wzory, klasyczne fasony i limitowane edycje. Zobacz naszą ofertę koszulek piłkarskich — idealne na stadion i do codziennego noszenia.</p>
+
+          <div className="flex gap-4 items-center">
+            <Link to="/products" className="gradient-btn px-6 py-3 rounded-full font-semibold text-black">Sprawdź koszulki</Link>
+          </div>
+
+          <div className="mt-8 grid grid-cols-3 gap-3">
+            {heroItems.length ? (
+              heroItems.map((it, i) => (
+                <Link key={it.id || i} to={`/product/${encodeURIComponent(it.id ?? '')}`} className="rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition h-28 bg-black/5 block">
+                  {it.src ? (
+                    <img src={it.src} alt={`hero ${i+1}`} className="w-full h-full object-cover" loading="lazy" onError={(e)=>{(e.currentTarget as HTMLImageElement).style.display='none'}} />
+                  ) : (
+                    <div className="w-full h-full bg-jersey-placeholder" />
+                  )}
+                </Link>
+              ))
+            ) : (
+              <>
+                <div className="rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition bg-jersey-placeholder h-28" />
+                <div className="rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition bg-jersey-placeholder h-28" />
+                <div className="rounded-lg overflow-hidden shadow-lg transform hover:scale-105 transition bg-jersey-placeholder h-28" />
+              </>
+            )}
+          </div>
+        </section>
+
+        {/* jersey stack removed — using clickable hero thumbnails above */}
+      </div>
     </main>
   );
 };

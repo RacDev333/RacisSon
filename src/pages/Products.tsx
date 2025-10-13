@@ -25,12 +25,20 @@ const Products: React.FC = () => {
           return;
         }
         const rows = await fetchSheetAsJson(spreadsheetId);
-        const mapped = rows.map((r: any) => ({
-          id: (r.id ?? r.ID ?? r.Id ?? '').toString(),
-          title: r.title ?? r.name ?? r.Title ?? 'Untitled',
-          image: r.image ?? r.photo ?? r.img ?? null,
-          price: r.price ?? r.cena ?? null,
-        }));
+        const mapped = rows.map((r: any) => {
+          const rawImages = r.images ?? r.photos ?? r.gallery ?? r.image ?? r.photo ?? r.img ?? null;
+          let firstImage = null;
+          if (rawImages) {
+            const arr = rawImages.toString().split(',').map((s: string) => s.trim()).filter(Boolean);
+            firstImage = arr.length ? arr[0] : null;
+          }
+          return {
+            id: (r.id ?? r.ID ?? r.Id ?? '').toString(),
+            title: r.title ?? r.name ?? r.Title ?? 'Untitled',
+            image: firstImage,
+            price: r.price ?? r.cena ?? null,
+          };
+        });
         setProducts(mapped);
       } catch (err: any) {
         console.error(err);

@@ -4,20 +4,20 @@ import { Link } from 'react-router-dom';
 
 const NotFound: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f5f7fa] text-gray-800 px-4 text-center">
-      <h1 className="text-6xl font-extrabold text-red-500 mb-4">404</h1>
-      <h2 className="text-2xl font-semibold mb-2">Nie znaleziono strony</h2>
-      <p className="text-gray-600 mb-6 max-w-md">
-        Przepraszamy, ale strona, której szukasz, mogła zostać przeniesiona lub nie istnieje.
-      </p>
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-red-500 text-white font-semibold hover:bg-red-600 transition"
-      >
-        <span className="mr-2">←</span>
-        Wróć na stronę główną
-      </Link>
-    </div>
+    <main className="min-h-screen flex items-center justify-center px-4 py-20">
+      <div className="max-w-[900px] w-full">
+        <div className="glass-card rounded-xl p-8 text-center">
+          <div className="text-9xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-pink-400 to-yellow-300">404</div>
+          <h2 className="text-2xl font-semibold mt-4 text-gray-100">Ups — nie znaleziono strony</h2>
+          <p className="text-gray-300 mt-3 max-w-prose mx-auto">Strona, której szukasz, nie istnieje lub została przeniesiona. Możesz wrócić do katalogu produktów lub na stronę główną.</p>
+
+          <div className="mt-8 flex items-center justify-center gap-4">
+            <Link to="/products" className="gradient-btn px-5 py-3 rounded-full text-black font-semibold">Przejdź do produktów</Link>
+            <Link to="/" className="text-sm text-gray-300 hover:text-white">Wróć na stronę główną</Link>
+          </div>
+        </div>
+      </div>
+    </main>
   );
 };
 
