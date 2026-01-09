@@ -6,7 +6,7 @@ const Contact: React.FC = () => {
     <main className="max-w-[900px] mx-auto px-4 py-12">
       <div className="glass-card rounded-xl p-6">
         <h1 className="text-3xl font-extrabold mb-4">Kontakt</h1>
-        <p className="text-gray-300 mb-4">Masz pytania? Napisz do nas lub zadzwoń. Oto nasze dane kontaktowe:</p>
+        <p className="text-gray-300 mb-4">Jesteś zainteresowany zakupem lub masz pytania? Napisz do nas! <br></br>Dane kontaktowe:</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -22,7 +22,7 @@ const Contact: React.FC = () => {
 
           <div>
             <h3 className="font-semibold mb-2">Godziny otwarcia</h3>
-            <p className="text-gray-300">Pon - Pt: 9:00 - 18:00<br/>Sob: 10:00 - 14:00<br/>Nd: Nieczynne</p>
+            <p className="text-gray-300">Pon - Pt: 12:00 - 18:00<br/>Sob: 12:00 - 16:00<br/>Nd: Nieczynne</p>
 
             <div className="mt-6">
               <h3 className="font-semibold mb-2">Formularz szybkiego kontaktu</h3>

@@ -32,8 +32,10 @@ const Home: React.FC = () => {
     <main className="max-w-[1200px] mx-auto px-6 py-20">
       <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
         <section className="p-6">
-          <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500">Kolekcja Koszulek Piłkarskich</h1>
-          <p className="text-gray-300 mb-6">Unikalne wzory, klasyczne fasony i limitowane edycje. Zobacz naszą ofertę koszulek piłkarskich — idealne na stadion i do codziennego noszenia.</p>
+          <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500">Koszulki Piłkarskie Specjalnie Dla Ciebie!</h1>
+          <p className="text-gray-300 mb-6">Każdy fan piłki nożnej wie, jak ważna jest koszulka, która łączy wygodę z pasją. 
+            Nasze koszulki piłkarskie pozwalają cieszyć się ulubioną dyscypliną zarówno na stadionie, jak i na co dzień. 
+            Wszystko to w korzystnych cenach, aż żal nie przetestować! </p>
 
           <div className="flex gap-4 items-center">
             <Link to="/products" className="gradient-btn px-6 py-3 rounded-full font-semibold text-black">Sprawdź koszulki</Link>

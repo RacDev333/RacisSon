@@ -3,11 +3,7 @@ import ProductCard from '../components/ProductCard';
 import Loading from '../components/Loading';
 import { fetchSheetAsJson } from '../services/googleSheets';
 
-// Small contract:
-// - Input: spreadsheetId (from query param or default)
-// - Output: list of products: { id, title, image, price }
-
-const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY'; // <-- set your spreadsheet id here or pass via ?sheet=
+const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY';
 
 const Products: React.FC = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -37,6 +33,10 @@ const Products: React.FC = () => {
             title: r.title ?? r.name ?? r.Title ?? 'Untitled',
             image: firstImage,
             price: r.price ?? r.cena ?? null,
+            sale: r.sale ?? r.discount ?? r.promocja ?? null,
+            version: r.version ?? null,
+            retro: r.retro ?? null,
+            size: r.size ?? null,
           };
         });
         setProducts(mapped);
@@ -62,7 +62,7 @@ const Products: React.FC = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-8">
         {products.map((p) => (
-          <ProductCard key={p.id} id={p.id} title={p.title} image={p.image} price={p.price} />
+          <ProductCard key={p.id} id={p.id} title={p.title} image={p.image} price={p.price} sale={p.sale} version={p.version} retro={p.retro} size={p.size}/>
         ))}
       </div>
     </main>

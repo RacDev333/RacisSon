@@ -37,6 +37,9 @@ const ProductDetail: React.FC = () => {
           images: r.images ?? r.photos ?? r.gallery ?? null,
           size: r.size ?? r.rozmiar ?? r.sizes ?? null,
           price: r.price ?? r.cena ?? null,
+          sale: r.sale ?? r.discount ?? r.promocja ?? null,
+          version: r.version ?? null,
+          retro: r.retro ?? null,
           description: r.description ?? r.desc ?? null,
         }));
         const found = mapped.find((p: any) => encodeURIComponent(p.id) === id);
@@ -100,6 +103,20 @@ const ProductDetail: React.FC = () => {
     setIsLightboxOpen(true);
   };
   
+  const parsePrice = (p?: string | number | null) => {
+    if (p == null) return NaN;
+    return Number(String(p).replace(/\s+/g, '').replace(',', '.'));
+  };
+
+  const numericPrice = parsePrice(product.price);
+  const salePct = (() => {
+    const s = product.sale ?? 0;
+    const v = Number(String(s).replace('%', '').trim());
+    return Number.isFinite(v) ? Math.max(0, v) : 0;
+  })();
+  const hasSale = salePct > 0 && Number.isFinite(numericPrice);
+  const salePrice = hasSale ? +(numericPrice * (1 - salePct / 100)).toFixed(2) : NaN;
+
   return (
     <main className="max-w-[900px] mx-auto px-4 py-12">
       <div className="glass-card rounded-xl p-6">
@@ -140,9 +157,22 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div>
-            <h1 className="text-3xl font-extrabold mb-2">{product.title}</h1>
-            {product.price && <div className="text-2xl font-semibold mb-4 bg-gradient-to-r from-pink-500 to-yellow-400 inline-block text-black px-4 py-2 rounded-full">{product.price} PLN</div>}
-            {product.size && <div className="text-sm text-gray-300 mb-2">Rozmiar: <span className="font-medium text-white ml-2">{product.size}</span></div>}
+              <h1 className="text-3xl font-extrabold mb-2">{(product.retro && (String(product.retro).trim().toLowerCase() === '1' || String(product.retro).trim().toLowerCase() === 'true' || String(product.retro).trim().toLowerCase() === 'yes' || String(product.retro).trim().toLowerCase() === 'tak')) ? (<><span className="text-yellow-300 font-extrabold mr-3">[RETRO]</span>{product.title}</>) : product.title}</h1>
+              {product.price && (
+                <div className="mb-4 inline-flex items-center gap-4">
+                  <div className="text-2xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-400 inline-block text-black px-4 py-2 rounded-full">
+                    {hasSale ? (salePrice % 1 === 0 ? salePrice.toFixed(0) : salePrice.toFixed(2)) : (Number.isFinite(numericPrice) ? (numericPrice % 1 === 0 ? numericPrice.toFixed(0) : numericPrice.toFixed(2)) : product.price)} PLN
+                  </div>
+                  {hasSale && (
+                    <div className="text-sm text-gray-300">
+                      <div className="font-medium text-white line-through">{numericPrice % 1 === 0 ? numericPrice.toFixed(0) : numericPrice.toFixed(2)} PLN</div>
+                      <div className="mt-1 text-sm text-yellow-300 font-bold">Produkt objęty przeceną {salePct}%</div>
+                    </div>
+                  )}
+                </div>
+              )}
+              {product.size && <div className="text-sm text-gray-300 mb-2">Rozmiar: <span className="font-medium text-white ml-2">{product.size}</span></div>}
+              {product.version && <div className="text-sm text-gray-300 mb-2">Wersja: <span className="font-medium text-white ml-2">{product.version}</span></div>}
             {product.description && <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{product.description}</p>}
             <div className="mt-8 flex items-center gap-4">
               <button onClick={() => navigate('/contact')} className="gradient-btn text-black px-5 py-3 rounded-full font-semibold cursor-pointer">Kup teraz</button>
