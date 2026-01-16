@@ -10,7 +10,7 @@ const Footer: React.FC = () => {
           <div className="flex items-center gap-4">
             <Link to="/contact" className="text-sm text-gray-300 hover:text-white">Kontakt</Link>
             <a href="#" className="text-sm text-gray-300 hover:text-white">Instagram</a>
-            <a href="#" className="text-sm text-gray-300 hover:text-white">Facebook</a>
+            <Link to="/terms" className="text-sm text-gray-300 hover:text-white">Regulamin</Link>
           </div>
         </div>
       </div>
