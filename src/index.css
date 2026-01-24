@@ -99,6 +99,39 @@ body {
 		to{ opacity:1; transform: translateY(0) }
 	}
 
+	@keyframes slideOutLeft{
+		from{ opacity:1; transform: translateX(0) }
+		to{ opacity:0; transform: translateX(-100%) }
+	}
+
+	@keyframes slideOutRight{
+		from{ opacity:1; transform: translateX(0) }
+		to{ opacity:0; transform: translateX(100%) }
+	}
+
+	@keyframes scaleOut{
+		from{ opacity:1; transform: scale(1) }
+		to{ opacity:0; transform: scale(0.8) }
+	}
+
+	@keyframes pulseAdd{
+		0%{ transform: scale(1) }
+		50%{ transform: scale(1.05) }
+		100%{ transform: scale(1) }
+	}
+
+	.animate-slide-out-left{
+		animation: slideOutLeft 0.4s ease-out forwards;
+	}
+
+	.animate-scale-out{
+		animation: scaleOut 0.3s ease-out forwards;
+	}
+
+	.animate-pulse-add{
+		animation: pulseAdd 0.5s ease-out;
+	}
+
 	.shine{
 		background: linear-gradient(90deg, rgba(255,255,255,0.04), rgba(255,255,255,0.12), rgba(255,255,255,0.04));
 		background-size: 200% 100%;

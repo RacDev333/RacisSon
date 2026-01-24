@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'; // 1. Importy z biblioteki
 import Loading from '../components/Loading';
 import { fetchSheetAsJson } from '../services/googleSheets';
+import { useCart } from '../context/CartContext';
 
 const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY';
 
@@ -11,14 +12,14 @@ const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [addedToCart, setAddedToCart] = useState(false);
 
   const [galleryIndex, setGalleryIndex] = useState<number>(0);
   const [isLightboxOpen, setIsLightboxOpen] = useState<boolean>(false);
   const [lightboxIndex, setLightboxIndex] = useState<number>(0);
   
-  const navigate = useNavigate();
+  const { addItem } = useCart();
 
-  // Fetch product data
   useEffect(() => {
     const load = async () => {
       setLoading(true);
@@ -55,14 +56,12 @@ const ProductDetail: React.FC = () => {
     load();
   }, [id]);
 
-  // Memoize the images array
   const images = useMemo(() => {
     if (!product) return [];
     const raw = product.images ?? product.image ?? '';
     return raw.toString().split(',').map((s: string) => s.trim()).filter(Boolean);
   }, [product]);
 
-  // Preload images in the background
   useEffect(() => {
     images.forEach((src: string) => {
       const img = new Image();
@@ -70,7 +69,6 @@ const ProductDetail: React.FC = () => {
     });
   }, [images]);
 
-  // Lock body scroll when lightbox is open
   useEffect(() => {
     if (!isLightboxOpen) return;
     const prevOverflow = document.body.style.overflow;
@@ -78,16 +76,10 @@ const ProductDetail: React.FC = () => {
     return () => { document.body.style.overflow = prevOverflow; };
   }, [isLightboxOpen]);
   
-  // Handle keyboard events for the lightbox
   useEffect(() => {
     if (!isLightboxOpen || images.length === 0) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setIsLightboxOpen(false);
-      // Wyłączamy strzałki, gdy obraz jest przybliżony, aby nie przełączać slajdu podczas przesuwania
-      // Biblioteka sama obsłuży przesuwanie przybliżonego obrazka strzałkami.
-      // Jeśli chcesz, żeby mimo wszystko przełączały slajd, usuń tę część logiki.
-      // if (e.key === 'ArrowRight') setLightboxIndex(i => (i + 1) % images.length);
-      // if (e.key === 'ArrowLeft') setLightboxIndex(i => (i - 1 + images.length) % images.length);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
@@ -116,6 +108,22 @@ const ProductDetail: React.FC = () => {
   })();
   const hasSale = salePct > 0 && Number.isFinite(numericPrice);
   const salePrice = hasSale ? +(numericPrice * (1 - salePct / 100)).toFixed(2) : NaN;
+
+  const handleAddToCart = () => {
+    const finalPrice = hasSale ? salePrice : numericPrice;
+    const mainImage = images.length > 0 ? images[0] : product.image || '';
+    
+    addItem({
+      id: product.id,
+      title: product.title,
+      price: finalPrice,
+      image: mainImage,
+      size: product.size,
+      version: product.version,
+    });
+
+    setAddedToCart(true);
+  };
 
   return (
     <main className="max-w-[900px] mx-auto px-4 py-12">
@@ -174,8 +182,26 @@ const ProductDetail: React.FC = () => {
               {product.size && <div className="text-sm text-gray-300 mb-2">Rozmiar: <span className="font-medium text-white ml-2">{product.size}</span></div>}
               {product.version && <div className="text-sm text-gray-300 mb-2">Wersja: <span className="font-medium text-white ml-2">{product.version}</span></div>}
             {product.description && <p className="text-gray-300 whitespace-pre-wrap leading-relaxed">{product.description}</p>}
-            <div className="mt-8 flex items-center gap-4">
-              <button onClick={() => navigate('/contact')} className="gradient-btn text-black px-5 py-3 rounded-full font-semibold cursor-pointer">Kup teraz</button>
+            <div className="mt-8 flex flex-col sm:flex-row items-center gap-3">
+              <button
+                onClick={handleAddToCart}
+                className={`flex-1 sm:flex-none px-6 py-3 rounded-full font-semibold cursor-pointer transition-all ${
+                  addedToCart
+                    ? 'bg-green-500 text-white animate-pulse-add'
+                    : 'gradient-btn text-black hover:shadow-lg'
+                }`}
+              >
+                {addedToCart ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    Dodano do koszyka
+                  </span>
+                ) : (
+                  'Dodaj do koszyka'
+                )}
+              </button>
               <Link to="/products" className="text-sm text-gray-300 hover:text-white">Powrót do katalogu</Link>
             </div>
           </div>
@@ -198,14 +224,21 @@ const ProductDetail: React.FC = () => {
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="w-6 h-6"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
               </button>
               
-              {/* 2. Owinięcie obrazka w komponenty do zoomu */}
+              <button
+                className="absolute right-3 top-3 text-white p-2 bg-black/40 hover:bg-black/60 rounded-full shadow-lg flex items-center justify-center w-10 h-10 z-20 cursor-pointer transition-colors"
+                onClick={() => setIsLightboxOpen(false)}
+                aria-label="Zamknij podgląd"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-5 h-5"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+              
               <TransformWrapper>
                 <TransformComponent
                     wrapperStyle={{ width: "100%", height: "100%" }}
                     contentStyle={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}
                 >
                   <img
-                    key={lightboxIndex} // Dodajemy key, aby komponent resetował stan zoomu przy zmianie zdjęcia
+                    key={lightboxIndex}
                     src={images[lightboxIndex]}
                     alt={`${product.title} ${lightboxIndex + 1}`}
                     className="max-h-[calc(90vh-100px)] object-contain"
