@@ -137,7 +137,7 @@ const Terms: React.FC = () => {
           <div className="mt-12 pt-8 border-t border-gray-700">
             <p className="text-gray-400 text-sm">
               © {new Date().getFullYear()} Racis&Son — Imported with care ✦<br />
-              Ostatnia aktualizacja: {new Date().toLocaleDateString('pl-PL')}
+              Ostatnia aktualizacja: 16.01.2026
             </p>
           </div>
 
