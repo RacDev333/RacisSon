@@ -1,17 +1,13 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'; // 1. Importy z biblioteki
 import Loading from '../components/Loading';
-import { fetchSheetAsJson } from '../services/googleSheets';
+import { fetchProducts } from '../services/productsApi';
 import { useCart } from '../context/CartContext';
-
-const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY';
 
 const ProductDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const [product, setProduct] = useState<any | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [addedToCart, setAddedToCart] = useState(false);
 
   const [galleryIndex, setGalleryIndex] = useState<number>(0);
@@ -20,46 +16,26 @@ const ProductDetail: React.FC = () => {
   
   const { addItem } = useCart();
 
+  const { data: products = [], isLoading: loading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
+
+  const product = useMemo(() => {
+    const decodedId = id ? decodeURIComponent(id) : '';
+    return products.find((p: any) => p.id === decodedId) || null;
+  }, [products, id]);
+
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const spreadsheetId = DEFAULT_SPREADSHEET;
-        if (!spreadsheetId) {
-          setError('Brak ID arkusza. Ustaw DEFAULT_SPREADSHEET w src/pages/ProductDetail.tsx');
-          return;
-        }
-        const rows = await fetchSheetAsJson(spreadsheetId);
-        const mapped = rows.map((r: any) => ({
-          id: (r.id ?? r.ID ?? r.Id ?? '').toString(),
-          title: r.title ?? r.name ?? r.Title ?? 'Untitled',
-          image: r.image ?? r.photo ?? r.img ?? null,
-          images: r.images ?? r.photos ?? r.gallery ?? null,
-          size: r.size ?? r.rozmiar ?? r.sizes ?? null,
-          price: r.price ?? r.cena ?? null,
-          sale: r.sale ?? r.discount ?? r.promocja ?? null,
-          version: r.version ?? null,
-          retro: r.retro ?? null,
-          description: r.description ?? r.desc ?? null,
-        }));
-        const found = mapped.find((p: any) => encodeURIComponent(p.id) === id);
-        setProduct(found || null);
-        setGalleryIndex(0);
-      } catch (err) {
-        console.error(err);
-        setError('Nie udało się pobrać danych produktu.');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    setGalleryIndex(0);
   }, [id]);
 
   const images = useMemo(() => {
     if (!product) return [];
-    const raw = product.images ?? product.image ?? '';
-    return raw.toString().split(',').map((s: string) => s.trim()).filter(Boolean);
+    // API returns comma-separated image URLs in 'image' field
+    return product.image 
+      ? product.image.toString().split(',').map((s: string) => s.trim()).filter(Boolean)
+      : [];
   }, [product]);
 
   useEffect(() => {
@@ -87,7 +63,7 @@ const ProductDetail: React.FC = () => {
 
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loading /></div>;
-  if (error) return <div className="p-8 text-center text-red-600">{error}</div>;
+  if (error) return <div className="p-8 text-center text-red-600">Nie udało się pobrać danych produktu.</div>;
   if (!product) return <div className="p-8 text-center">Produkt nie znaleziony. <Link to="/products" className="text-blue-600">Powrót</Link></div>;
 
   const openLightbox = (index: number) => {
@@ -165,7 +141,7 @@ const ProductDetail: React.FC = () => {
           </div>
 
           <div>
-              <h1 className="text-3xl font-extrabold mb-2">{(product.retro && (String(product.retro).trim().toLowerCase() === '1' || String(product.retro).trim().toLowerCase() === 'true' || String(product.retro).trim().toLowerCase() === 'yes' || String(product.retro).trim().toLowerCase() === 'tak')) ? (<><span className="text-yellow-300 font-extrabold mr-3">[RETRO]</span>{product.title}</>) : product.title}</h1>
+              <h1 className="text-3xl font-extrabold mb-2">{(product.is_retro && (String(product.is_retro).trim().toLowerCase() === '1' || String(product.is_retro).trim().toLowerCase() === 'true' || String(product.is_retro).trim().toLowerCase() === 'yes' || String(product.is_retro).trim().toLowerCase() === 'tak')) ? (<><span className="text-yellow-300 font-extrabold mr-3">[RETRO]</span>{product.title}</>) : product.title}</h1>
               {product.price && (
                 <div className="mb-4 inline-flex items-center gap-4">
                   <div className="text-2xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-400 inline-block text-black px-4 py-2 rounded-full whitespace-nowrap">

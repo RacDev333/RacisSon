@@ -66,7 +66,7 @@ const Cart: React.FC = () => {
             {items.map((item) => (
               <Link
                 key={item.id}
-                to={`/product/${item.id}`}
+                to={`/product/${encodeURIComponent(item.id)}`}
                 className={`flex gap-4 pb-4 border-b border-gray-700 last:border-b-0 last:pb-0 transition-all cursor-pointer group ${
                   removingItems.has(item.id) ? 'animate-slide-out-left' : 'animate-fade-in'
                 }`}

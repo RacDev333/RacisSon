@@ -1,32 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { fetchSheetAsJson } from '../services/googleSheets';
-
-const DEFAULT_SPREADSHEET = '1KlaZ-qTVVbK0bMzHxPejQjH8j4hCRB-L3saXCaM5MwY';
+import { useQuery } from '@tanstack/react-query';
+import { fetchProducts } from '../services/productsApi';
 
 const Home: React.FC = () => {
-  const [heroItems, setHeroItems] = useState<{ id: string; src?: string }[]>([]);
+  const { data: products = [] } = useQuery({
+    queryKey: ['products'],
+    queryFn: fetchProducts,
+  });
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const rows = await fetchSheetAsJson(DEFAULT_SPREADSHEET);
-        const items = rows.map((r: any) => {
-          const id = (r.id ?? r.ID ?? r.Id ?? '').toString();
-          const raw = r.images ?? r.photos ?? r.image ?? r.photo ?? r.img ?? '';
-          if (!raw) return null;
-          const arr = raw.toString().split(',').map((s: string) => s.trim()).filter(Boolean);
-          return { id, src: arr.length ? arr[0] : undefined };
-        }).filter(Boolean) as { id: string; src?: string }[];
-        if (mounted) setHeroItems(items.slice(0, 3));
-      } catch (err) {
-        console.error('Failed to load hero images', err);
-      }
+  const heroItems = products.slice(0, 3).map((p: any) => {
+    const images = p.image
+      ? p.image.toString().split(',').map((s: string) => s.trim()).filter(Boolean)
+      : [];
+    return {
+      id: p.id,
+      src: images.length ? images[0] : undefined,
     };
-    load();
-    return () => { mounted = false; };
-  }, []);
+  });
 
   return (
     <main className="max-w-[1200px] mx-auto px-6 py-20">
