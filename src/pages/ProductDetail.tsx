@@ -168,12 +168,12 @@ const ProductDetail: React.FC = () => {
               <h1 className="text-3xl font-extrabold mb-2">{(product.retro && (String(product.retro).trim().toLowerCase() === '1' || String(product.retro).trim().toLowerCase() === 'true' || String(product.retro).trim().toLowerCase() === 'yes' || String(product.retro).trim().toLowerCase() === 'tak')) ? (<><span className="text-yellow-300 font-extrabold mr-3">[RETRO]</span>{product.title}</>) : product.title}</h1>
               {product.price && (
                 <div className="mb-4 inline-flex items-center gap-4">
-                  <div className="text-2xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-400 inline-block text-black px-4 py-2 rounded-full">
+                  <div className="text-2xl font-semibold bg-gradient-to-r from-pink-500 to-yellow-400 inline-block text-black px-4 py-2 rounded-full whitespace-nowrap">
                     {hasSale ? (salePrice % 1 === 0 ? salePrice.toFixed(0) : salePrice.toFixed(2)) : (Number.isFinite(numericPrice) ? (numericPrice % 1 === 0 ? numericPrice.toFixed(0) : numericPrice.toFixed(2)) : product.price)} PLN
                   </div>
                   {hasSale && (
                     <div className="text-sm text-gray-300">
-                      <div className="font-medium text-white line-through">{numericPrice % 1 === 0 ? numericPrice.toFixed(0) : numericPrice.toFixed(2)} PLN</div>
+                      <div className="font-medium text-white line-through whitespace-nowrap">{numericPrice % 1 === 0 ? numericPrice.toFixed(0) : numericPrice.toFixed(2)} PLN</div>
                       <div className="mt-1 text-sm text-yellow-300 font-bold">Produkt objęty przeceną {salePct}%</div>
                     </div>
                   )}

@@ -83,7 +83,7 @@ const Cart: React.FC = () => {
                   <h3 className="font-semibold text-lg text-white mb-1 group-hover:text-yellow-300 transition">{item.title}</h3>
                   {item.size && <p className="text-sm text-gray-400">Rozmiar: {item.size}</p>}
                   {item.version && <p className="text-sm text-gray-400">Wersja: {item.version}</p>}
-                  <p className="text-lg font-bold text-yellow-400 mt-2">{item.price.toFixed(2)} PLN</p>
+                  <p className="text-lg font-bold text-yellow-400 mt-2 whitespace-nowrap">{item.price.toFixed(2)} PLN</p>
                 </div>
 
                 <button
@@ -110,21 +110,21 @@ const Cart: React.FC = () => {
             <div className="space-y-3 mb-6 pb-6 border-b border-gray-700">
               <div className="flex justify-between text-gray-300">
                 <span>Produkty ({items.length}):</span>
-                <span>{totalPrice.toFixed(2)} PLN</span>
+                <span className="whitespace-nowrap">{totalPrice.toFixed(2)} PLN</span>
               </div>
               {hasDiscount && (
                 <div className="flex justify-between text-green-400 font-semibold">
                   <span>Zniżka {DISCOUNT_PERCENT}%:</span>
-                  <span>-{discountAmount.toFixed(2)} PLN</span>
+                  <span className="whitespace-nowrap">-{discountAmount.toFixed(2)} PLN</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold text-yellow-400">
                 <span>Razem:</span>
-                <span>{finalPrice.toFixed(2)} PLN</span>
+                <span className="whitespace-nowrap">{finalPrice.toFixed(2)} PLN</span>
               </div>
             </div>
 
-            <Link to="/contact" className="gradient-btn text-black px-4 py-3 rounded-full font-semibold w-full text-center block mb-3">
+            <Link to="/order" className="gradient-btn text-black px-4 py-3 rounded-full font-semibold w-full text-center block mb-3">
               Przejdź do zakupu
             </Link>
 
