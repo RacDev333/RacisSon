@@ -28,6 +28,7 @@ body {
 	overscroll-behavior: none;
 	-webkit-user-select: text;
 	-webkit-touch-callout: default;
+	overflow-y: scroll;
 }
 
 #root {
