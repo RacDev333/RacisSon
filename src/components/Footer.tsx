@@ -9,7 +9,7 @@ const Footer: React.FC = () => {
           <div className="text-sm text-gray-300">© {new Date().getFullYear()} Racis&Son — Imported with care ✦</div>
           <div className="flex items-center gap-4">
             <Link to="/contact" className="text-sm text-gray-300 hover:text-white">Kontakt</Link>
-            <a href="#" className="text-sm text-gray-300 hover:text-white">Instagram</a>
+            <Link to="/privacy" className="text-sm text-gray-300 hover:text-white">Polityka prywatności</Link>
             <Link to="/terms" className="text-sm text-gray-300 hover:text-white">Regulamin</Link>
           </div>
         </div>
