@@ -17,6 +17,10 @@ interface CartContextType {
   clearCart: () => void;
   totalPrice: number;
   itemCount: number;
+  promoCode: string | null;
+  promoDiscount: number;
+  applyPromoCode: (code: string) => boolean;
+  clearPromoCode: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -28,10 +32,30 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [promoCode, setPromoCode] = useState<string | null>(() => {
+    const saved = localStorage.getItem('promoCode');
+    return saved || null;
+  });
+
+  const [promoDiscount, setPromoDiscount] = useState<number>(() => {
+    const saved = localStorage.getItem('promoDiscount');
+    return saved ? parseFloat(saved) : 0;
+  });
+
   // Zapisywanie do localStorage za każdym razem, gdy zmieni się koszyk
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(items));
   }, [items]);
+
+  useEffect(() => {
+    if (promoCode) {
+      localStorage.setItem('promoCode', promoCode);
+      localStorage.setItem('promoDiscount', promoDiscount.toString());
+    } else {
+      localStorage.removeItem('promoCode');
+      localStorage.removeItem('promoDiscount');
+    }
+  }, [promoCode, promoDiscount]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
@@ -50,13 +74,38 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const clearCart = () => {
     setItems([]);
+    setPromoCode(null);
+    setPromoDiscount(0);
+  };
+
+  const applyPromoCode = (code: string): boolean => {
+    // Ta funkcja będzie wywoływana z komponentów Cart/Order z walidacją
+    return false; // Placeholder - będzie nadpisane w komponentach
+  };
+
+  const clearPromoCode = () => {
+    setPromoCode(null);
+    setPromoDiscount(0);
   };
 
   const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
   const itemCount = items.length;
 
   return (
-    <CartContext.Provider value={{ items, addItem, removeItem, clearCart, totalPrice, itemCount }}>
+    <CartContext.Provider 
+      value={{ 
+        items, 
+        addItem, 
+        removeItem, 
+        clearCart, 
+        totalPrice, 
+        itemCount,
+        promoCode,
+        promoDiscount,
+        applyPromoCode,
+        clearPromoCode
+      }}
+    >
       {children}
     </CartContext.Provider>
   );

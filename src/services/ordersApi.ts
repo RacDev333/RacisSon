@@ -11,7 +11,7 @@ export interface OrderData {
   building_number: string;
   shipping_method: string;
   shipping_notes: string;
-  discount_code: null;
+  code_id: number | null;
   product_id: number[];
 }
 

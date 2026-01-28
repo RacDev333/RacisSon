@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import ProductCard from '../components/ProductCard';
 import Loading from '../components/Loading';
@@ -9,6 +9,13 @@ const Products: React.FC = () => {
     queryKey: ['products'],
     queryFn: fetchProducts,
   });
+
+  // Czyścimy kod promocyjny gdy użytkownik opuścił proces zakupu
+  useEffect(() => {
+    localStorage.removeItem('promoCodeId');
+    localStorage.removeItem('promoCode');
+    localStorage.removeItem('promoDiscount');
+  }, []);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center"><Loading /></div>;
   if (error) return <div className="p-8 text-center text-red-600">Nie udało się pobrać produktów.</div>;

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrder } from '../services/ordersApi';
+import { fetchPromoCodes } from '../services/productsApi';
+import type { PromoCode } from '../services/productsApi';
 
 interface OrderFormData {
   firstName: string;
@@ -22,6 +24,33 @@ const Order: React.FC = () => {
   const [submitted, setSubmitted] = useState(false);
   const [orderSummary, setOrderSummary] = useState<{ itemCount: number; finalPrice: number } | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [availableCodes, setAvailableCodes] = useState<PromoCode[]>([]);
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const codes = await fetchPromoCodes();
+      setAvailableCodes(codes);
+      
+      // Sprawdź czy jest zapisany kod w localStorage i zaaplikuj go
+      const savedCodeId = localStorage.getItem('promoCodeId');
+      
+      if (savedCodeId) {
+        const found = codes.find(c => c.id === parseInt(savedCodeId));
+        
+        if (found) {
+          setPromoInput(found.code);
+          setAppliedPromo(found);
+          setPromoSuccess(`Kod ${found.code} został zastosowany! Zniżka ${found.sale}%`);
+        }
+      }
+    };
+    
+    loadData().catch(console.error);
+  }, []);
 
   const {
     register,
@@ -45,9 +74,44 @@ const Order: React.FC = () => {
 
   const DISCOUNT_THRESHOLD = 3;
   const DISCOUNT_PERCENT = 20;
-  const hasDiscount = items.length >= DISCOUNT_THRESHOLD;
-  const discountAmount = hasDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
-  const finalPrice = +(totalPrice - discountAmount).toFixed(2);
+  const hasQuantityDiscount = items.length >= DISCOUNT_THRESHOLD;
+  const quantityDiscountAmount = hasQuantityDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
+  
+  const priceAfterQuantityDiscount = totalPrice - quantityDiscountAmount;
+  const promoDiscountAmount = appliedPromo ? +(priceAfterQuantityDiscount * (appliedPromo.sale / 100)).toFixed(2) : 0;
+  const finalPrice = +(priceAfterQuantityDiscount - promoDiscountAmount).toFixed(2);
+
+  const handleApplyPromo = () => {
+    setPromoError('');
+    setPromoSuccess('');
+    
+    if (!promoInput.trim()) {
+      setPromoError('Wprowadź kod promocyjny');
+      return;
+    }
+
+    const foundCode = availableCodes.find(c => c.code.toLowerCase() === promoInput.trim().toLowerCase());
+    
+    if (foundCode) {
+      setAppliedPromo(foundCode);
+      setPromoSuccess(`Kod ${foundCode.code} został zastosowany! Zniżka ${foundCode.sale}%`);
+      localStorage.setItem('promoCodeId', foundCode.id.toString());
+      localStorage.setItem('promoCode', foundCode.code);
+      localStorage.setItem('promoDiscount', foundCode.sale.toString());
+    } else {
+      setPromoError('Nieprawidłowy kod promocyjny');
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoSuccess('');
+    setPromoError('');
+    localStorage.removeItem('promoCodeId');
+    localStorage.removeItem('promoCode');
+    localStorage.removeItem('promoDiscount');
+  };
 
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
@@ -65,7 +129,7 @@ const Order: React.FC = () => {
         building_number: data.houseNumber,
         shipping_method: '',
         shipping_notes: '',
-        discount_code: null,
+        code_id: appliedPromo ? appliedPromo.id : null,
         product_id: items.map((item) => parseInt(item.id, 10)),
       };
 
@@ -172,15 +236,70 @@ const Order: React.FC = () => {
               ))}
             </div>
 
+            {/* Kod promocyjny */}
+            <div className="mb-4 pb-4 border-b border-gray-700">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Kod promocyjny</label>
+              {!appliedPromo ? (
+                <div className="flex gap-2 items-stretch">
+                  <input
+                    type="text"
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value.toUpperCase());
+                      setPromoError('');
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                    placeholder="WPISZ KOD"
+                    className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg bg-slate-800 border border-gray-700 focus:border-yellow-400 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-400/50 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    className="px-4 py-2 cursor-pointer text-sm bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
+                  >
+                    Zastosuj
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-green-400">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <span className="text-sm text-green-400 font-medium">{appliedPromo.code}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemovePromo}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                    aria-label="Usuń kod"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {promoError && <p className="text-red-400 text-xs mt-2">{promoError}</p>}
+              {promoSuccess && <p className="text-green-400 text-xs mt-2">{promoSuccess}</p>}
+            </div>
+
             <div className="space-y-2">
               <div className="flex justify-between text-gray-300">
                 <span>Produkty ({items.length}):</span>
                 <span className="whitespace-nowrap">{totalPrice.toFixed(2)} PLN</span>
               </div>
-              {hasDiscount && (
+              {hasQuantityDiscount && (
                 <div className="flex justify-between text-green-400 font-semibold">
                   <span>Zniżka {DISCOUNT_PERCENT}%:</span>
-                  <span className="whitespace-nowrap">-{discountAmount.toFixed(2)} PLN</span>
+                  <span className="whitespace-nowrap">-{quantityDiscountAmount.toFixed(2)} PLN</span>
+                </div>
+              )}
+              {appliedPromo && (
+                <div className="flex justify-between text-green-400 font-semibold">
+                  <span>Kod {appliedPromo.code} (-{appliedPromo.sale}%):</span>
+                  <span className="whitespace-nowrap">-{promoDiscountAmount.toFixed(2)} PLN</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold text-yellow-400 pt-2 border-t border-gray-700">

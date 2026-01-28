@@ -16,6 +16,13 @@ const ProductDetail: React.FC = () => {
   
   const { addItem } = useCart();
 
+  // Czyścimy kod promocyjny gdy użytkownik opuścił proces zakupu
+  useEffect(() => {
+    localStorage.removeItem('promoCodeId');
+    localStorage.removeItem('promoCode');
+    localStorage.removeItem('promoDiscount');
+  }, []);
+
   const { data: products = [], isLoading: loading, error } = useQuery({
     queryKey: ['products'],
     queryFn: fetchProducts,

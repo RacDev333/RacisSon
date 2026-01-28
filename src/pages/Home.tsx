@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { fetchProducts } from '../services/productsApi';
@@ -8,6 +8,13 @@ const Home: React.FC = () => {
     queryKey: ['products'],
     queryFn: fetchProducts,
   });
+
+  // Czyścimy kod promocyjny gdy użytkownik opuścił proces zakupu
+  useEffect(() => {
+    localStorage.removeItem('promoCodeId');
+    localStorage.removeItem('promoCode');
+    localStorage.removeItem('promoDiscount');
+  }, []);
 
   const heroItems = products.slice(0, 3).map((p: any) => {
     const images = p.image
