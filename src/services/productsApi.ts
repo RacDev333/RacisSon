@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 export interface Product {
+  id: number;
   title: string;
   image: string;
   price: number;
@@ -14,18 +15,12 @@ export interface Product {
 
 const API_URL = 'http://localhost:8000';
 
-export async function fetchProducts(): Promise<(Product & { id: string })[]> {
+export async function fetchProducts(): Promise<Product[]> {
   try {
-    const res = await axios.get(`${API_URL}/products`);
+    const res = await axios.get(`${API_URL}/products/`);
     const products = res.data as Product[];
 
-    // Map products with IDs (using title as unique identifier if no ID provided)
-    const mappedProducts = products.map((p, index) => ({
-      id: `${p.title.toLowerCase().replace(/\s+/g, '-')}-${index}`,
-      ...p,
-    }));
-
-    return mappedProducts;
+    return products;
   } catch (err) {
     console.error('Failed to fetch products from API:', err);
     throw new Error('Nie udało się pobrać produktów z API.');

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { submitOrder } from '../services/ordersApi';
 
 interface OrderFormData {
   firstName: string;
@@ -20,6 +21,7 @@ const Order: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [orderSummary, setOrderSummary] = useState<{ itemCount: number; finalPrice: number } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
     register,
@@ -49,16 +51,42 @@ const Order: React.FC = () => {
 
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
-    // Symulujemy wysłanie zamówienia
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log('Zamówienie:', { ...data, items, totalPrice: finalPrice });
-    
-    // Zapisujemy dane zamówienia przed wyczyszczeniem koszyka
-    setOrderSummary({ itemCount: items.length, finalPrice });
-    clearCart();
-    setSubmitted(true);
-    reset();
-    setIsSubmitting(false);
+    setSubmitError(null);
+    try {
+      // Przygotowujemy dane zamówienia w formacie wymaganym przez API
+      const orderData = {
+        name: data.firstName,
+        surname: data.lastName,
+        number: data.phone,
+        email: data.email,
+        city: data.city,
+        postal_code: data.postalCode,
+        street: data.street,
+        building_number: data.houseNumber,
+        shipping_method: '',
+        shipping_notes: '',
+        discount_code: null,
+        product_id: items.map((item) => parseInt(item.id, 10)),
+      };
+
+      // Wysyłamy zamówienie do API
+      const response = await submitOrder(orderData);
+      
+      console.log('Odpowiedź API:', response);
+      
+      // Zapisujemy dane zamówienia przed wyczyszczeniem koszyka
+      setOrderSummary({ itemCount: items.length, finalPrice });
+      clearCart();
+      setSubmitted(true);
+      reset();
+    } catch (error) {
+      console.error('Błąd podczas składania zamówienia:', error);
+      setSubmitError(
+        'Nie udało się złożyć zamówienia. Sprawdź połączenie i spróbuj ponownie. Jeśli problem się powtarza, skontaktuj się z nami.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Ekran potwierdzenia po złożeniu zamówienia
@@ -166,6 +194,15 @@ const Order: React.FC = () => {
         {/* Formularz */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {submitError && (
+              <div
+                role="alert"
+                className="glass-card rounded-xl p-4 border border-red-500/30 bg-red-500/10 text-red-200"
+              >
+                <p className="font-semibold mb-1">Coś poszło nie tak</p>
+                <p className="text-sm text-red-200/90">{submitError}</p>
+              </div>
+            )}
             {/* Dane osobowe */}
             <div className="glass-card rounded-xl p-6">
               <h2 className="text-xl font-semibold mb-4">Dane osobowe</h2>
@@ -365,7 +402,7 @@ const Order: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 rounded-full font-semibold text-black transition-all ${
+              className={`w-full py-3 rounded-full font-semibold text-black transition-all cursor-pointer ${
                 isSubmitting
                   ? 'bg-gray-600 cursor-not-allowed opacity-50'
                   : 'gradient-btn hover:shadow-lg'

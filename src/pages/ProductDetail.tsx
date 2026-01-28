@@ -22,8 +22,10 @@ const ProductDetail: React.FC = () => {
   });
 
   const product = useMemo(() => {
-    const decodedId = id ? decodeURIComponent(id) : '';
-    return products.find((p: any) => p.id === decodedId) || null;
+    if (!id) return null;
+    const decodedId = decodeURIComponent(id);
+    const numericId = parseInt(decodedId, 10);
+    return products.find((p: any) => p.id === numericId) || null;
   }, [products, id]);
 
   useEffect(() => {
@@ -90,7 +92,7 @@ const ProductDetail: React.FC = () => {
     const mainImage = images.length > 0 ? images[0] : product.image || '';
     
     addItem({
-      id: product.id,
+      id: String(product.id),
       title: product.title,
       price: finalPrice,
       image: mainImage,
