@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 type Props = {
-  id: string;
+  id: number;
   title: string;
   image?: string;
   price?: string;

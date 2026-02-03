@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { submitOrder } from '../services/ordersApi';
+import { useAllData } from '../services/productsApi';
+import type { PromoCode } from '../services/productsApi';
 
 interface OrderFormData {
   firstName: string;
@@ -17,9 +20,35 @@ interface OrderFormData {
 
 const Order: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
+  const { data: allData } = useAllData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [orderSummary, setOrderSummary] = useState<{ itemCount: number; finalPrice: number } | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [promoInput, setPromoInput] = useState('');
+  const [promoError, setPromoError] = useState('');
+  const [promoSuccess, setPromoSuccess] = useState('');
+  const [availableCodes, setAvailableCodes] = useState<PromoCode[]>([]);
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
+
+  useEffect(() => {
+    if (allData?.codes) {
+      setAvailableCodes(allData.codes);
+      
+      // Sprawdź czy jest zapisany kod w localStorage i zaaplikuj go
+      const savedCodeId = localStorage.getItem('promoCodeId');
+      
+      if (savedCodeId) {
+        const found = allData.codes.find(c => c.id === parseInt(savedCodeId));
+        
+        if (found) {
+          setPromoInput(found.code);
+          setAppliedPromo(found);
+          setPromoSuccess(`Kod ${found.code} został zastosowany! Zniżka ${found.sale}%`);
+        }
+      }
+    }
+  }, [allData]);
 
   const {
     register,
@@ -42,23 +71,84 @@ const Order: React.FC = () => {
   });
 
   const DISCOUNT_THRESHOLD = 3;
-  const DISCOUNT_PERCENT = 20;
-  const hasDiscount = items.length >= DISCOUNT_THRESHOLD;
-  const discountAmount = hasDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
-  const finalPrice = +(totalPrice - discountAmount).toFixed(2);
+  const DISCOUNT_PERCENT = 15;
+  const hasQuantityDiscount = items.length >= DISCOUNT_THRESHOLD;
+  const quantityDiscountAmount = hasQuantityDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
+  
+  const priceAfterQuantityDiscount = totalPrice - quantityDiscountAmount;
+  const promoDiscountAmount = appliedPromo ? +(priceAfterQuantityDiscount * (appliedPromo.sale / 100)).toFixed(2) : 0;
+  const finalPrice = +(priceAfterQuantityDiscount - promoDiscountAmount).toFixed(2);
+
+  const handleApplyPromo = () => {
+    setPromoError('');
+    setPromoSuccess('');
+    
+    if (!promoInput.trim()) {
+      setPromoError('Wprowadź kod promocyjny');
+      return;
+    }
+
+    const foundCode = availableCodes.find(c => c.code.toLowerCase() === promoInput.trim().toLowerCase());
+    
+    if (foundCode) {
+      setAppliedPromo(foundCode);
+      setPromoSuccess(`Kod ${foundCode.code} został zastosowany! Zniżka ${foundCode.sale}%`);
+      localStorage.setItem('promoCodeId', foundCode.id.toString());
+      localStorage.setItem('promoCode', foundCode.code);
+      localStorage.setItem('promoDiscount', foundCode.sale.toString());
+    } else {
+      setPromoError('Nieprawidłowy kod promocyjny');
+    }
+  };
+
+  const handleRemovePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoSuccess('');
+    setPromoError('');
+    localStorage.removeItem('promoCodeId');
+    localStorage.removeItem('promoCode');
+    localStorage.removeItem('promoDiscount');
+  };
 
   const onSubmit = async (data: OrderFormData) => {
     setIsSubmitting(true);
-    // Symulujemy wysłanie zamówienia
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    console.log('Zamówienie:', { ...data, items, totalPrice: finalPrice });
-    
-    // Zapisujemy dane zamówienia przed wyczyszczeniem koszyka
-    setOrderSummary({ itemCount: items.length, finalPrice });
-    clearCart();
-    setSubmitted(true);
-    reset();
-    setIsSubmitting(false);
+    setSubmitError(null);
+    try {
+      // Przygotowujemy dane zamówienia w formacie wymaganym przez API
+      const orderData = {
+        name: data.firstName,
+        surname: data.lastName,
+        number: data.phone,
+        email: data.email,
+        city: data.city,
+        postal_code: data.postalCode,
+        street: data.street,
+        building_number: data.houseNumber,
+        shipping_method: '',
+        shipping_notes: '',
+        code_id: appliedPromo ? appliedPromo.id : null,
+        product_id: items.map((item) => parseInt(item.id, 10)),
+      };
+
+      // Wysyłamy zamówienie do API
+      const response = await submitOrder(orderData);
+      
+      console.log('Odpowiedź API:', response);
+      
+      // Zapisujemy dane zamówienia przed wyczyszczeniem koszyka
+      setOrderSummary({ itemCount: items.length, finalPrice });
+      clearCart();
+      setSubmitted(true);
+      reset();
+    } catch (error) {
+      console.error('Błąd podczas składania zamówienia:', error);
+      setSubmitError(
+        'Nie udało się złożyć zamówienia. Sprawdź połączenie i spróbuj ponownie. Jeśli problem się powtarza, skontaktuj się z nami.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Ekran potwierdzenia po złożeniu zamówienia
@@ -144,15 +234,70 @@ const Order: React.FC = () => {
               ))}
             </div>
 
+            {/* Kod promocyjny */}
+            <div className="mb-4 pb-4 border-b border-gray-700">
+              <label className="block text-sm font-medium text-gray-300 mb-2">Kod promocyjny</label>
+              {!appliedPromo ? (
+                <div className="flex gap-2 items-stretch">
+                  <input
+                    type="text"
+                    value={promoInput}
+                    onChange={(e) => {
+                      setPromoInput(e.target.value.toUpperCase());
+                      setPromoError('');
+                    }}
+                    onKeyDown={(e) => e.key === 'Enter' && handleApplyPromo()}
+                    placeholder="WPISZ KOD"
+                    className="flex-1 min-w-0 px-3 py-2 text-sm rounded-lg bg-slate-800 border border-gray-700 focus:border-yellow-400 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-400/50 transition-colors"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyPromo}
+                    className="px-4 py-2 cursor-pointer text-sm bg-yellow-400 hover:bg-yellow-500 text-black font-semibold rounded-lg transition-colors whitespace-nowrap flex-shrink-0"
+                  >
+                    Zastosuj
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between px-3 py-2 bg-green-500/10 border border-green-500/30 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 text-green-400">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                      <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    <span className="text-sm text-green-400 font-medium">{appliedPromo.code}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemovePromo}
+                    className="text-gray-400 hover:text-red-400 transition-colors"
+                    aria-label="Usuń kod"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4">
+                      <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+              {promoError && <p className="text-red-400 text-xs mt-2">{promoError}</p>}
+              {promoSuccess && <p className="text-green-400 text-xs mt-2">{promoSuccess}</p>}
+            </div>
+
             <div className="space-y-2">
               <div className="flex justify-between text-gray-300">
                 <span>Produkty ({items.length}):</span>
                 <span className="whitespace-nowrap">{totalPrice.toFixed(2)} PLN</span>
               </div>
-              {hasDiscount && (
+              {hasQuantityDiscount && (
                 <div className="flex justify-between text-green-400 font-semibold">
                   <span>Zniżka {DISCOUNT_PERCENT}%:</span>
-                  <span className="whitespace-nowrap">-{discountAmount.toFixed(2)} PLN</span>
+                  <span className="whitespace-nowrap">-{quantityDiscountAmount.toFixed(2)} PLN</span>
+                </div>
+              )}
+              {appliedPromo && (
+                <div className="flex justify-between text-green-400 font-semibold">
+                  <span>Kod {appliedPromo.code} (-{appliedPromo.sale}%):</span>
+                  <span className="whitespace-nowrap">-{promoDiscountAmount.toFixed(2)} PLN</span>
                 </div>
               )}
               <div className="flex justify-between text-lg font-bold text-yellow-400 pt-2 border-t border-gray-700">
@@ -166,6 +311,15 @@ const Order: React.FC = () => {
         {/* Formularz */}
         <div className="lg:col-span-2">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+            {submitError && (
+              <div
+                role="alert"
+                className="glass-card rounded-xl p-4 border border-red-500/30 bg-red-500/10 text-red-200"
+              >
+                <p className="font-semibold mb-1">Coś poszło nie tak</p>
+                <p className="text-sm text-red-200/90">{submitError}</p>
+              </div>
+            )}
             {/* Dane osobowe */}
             <div className="glass-card rounded-xl p-6">
               <h2 className="text-xl font-semibold mb-4">Dane osobowe</h2>
@@ -365,7 +519,7 @@ const Order: React.FC = () => {
             <button
               type="submit"
               disabled={isSubmitting}
-              className={`w-full py-3 rounded-full font-semibold text-black transition-all ${
+              className={`w-full py-3 rounded-full font-semibold text-black transition-all cursor-pointer ${
                 isSubmitting
                   ? 'bg-gray-600 cursor-not-allowed opacity-50'
                   : 'gradient-btn hover:shadow-lg'

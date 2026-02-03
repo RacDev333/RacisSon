@@ -19,11 +19,12 @@ export const router = createBrowserRouter([
             { path: 'products', element: <Products /> },
             { path: 'contact', element: <Contact /> },
             { path: 'terms', element: <Terms /> },
-                        { path: 'privacy', element: <Privacy /> },
+            { path: 'privacy', element: <Privacy /> },
             { path: 'cart', element: <Cart /> },
             { path: 'order', element: <Order /> },
             { path: 'product/:id', element: <ProductDetail /> },
             { path: '*', element: <NotFound /> },
         ],
     },
-]);
+], {
+});
