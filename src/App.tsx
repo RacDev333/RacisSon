@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import './App.css'
@@ -17,11 +17,17 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
 
-  useEffect(() => {
-    window.scrollTo(0, 0);
-  }, [pathname]);
+  // Użyj useLayoutEffect aby wykonać się synchronicznie przed renderowaniem
+  useLayoutEffect(() => {
+    if (!hash) {
+      // Przewiń na górę natychmiastowo
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
+      window.scrollTo(0, 0);
+    }
+  }, [pathname, hash]);
 
   return (
     <QueryClientProvider client={queryClient}>
