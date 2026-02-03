@@ -1,31 +1,18 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { fetchBroadcasts } from '../services/productsApi';
+import React, { useRef, useState } from 'react';
+import { useAllData } from '../services/productsApi';
 import type { Broadcast } from '../services/productsApi';
 
 export default function BroadcastBanner() {
-  const [broadcasts, setBroadcasts] = useState<Broadcast[]>([]);
+  const { data: allData } = useAllData();
+  const broadcasts = allData?.broadcasts || [];
   const [repeats, setRepeats] = useState(1);
   const [duration, setDuration] = useState(20);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const measureRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    let mounted = true;
-    const load = async () => {
-      try {
-        const data = await fetchBroadcasts();
-        if (mounted && data.length) setBroadcasts(data);
-      } catch (err) {
-        console.error('BroadcastBanner load error', err);
-      }
-    };
-    load();
-    return () => { mounted = false; };
-  }, []);
-
   // measure widths and compute repeats/duration
-  useEffect(() => {
+  React.useEffect(() => {
     const compute = () => {
       const container = containerRef.current;
       const measure = measureRef.current;

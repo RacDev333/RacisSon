@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
 
 export interface Product {
   id: number;
@@ -68,4 +69,15 @@ export async function fetchPromoCodes(): Promise<PromoCode[]> {
 export async function fetchBroadcasts(): Promise<Broadcast[]> {
   const data = await fetchEverything();
   return data.broadcasts;
+}
+
+// Custom hook do pobierania wszystkich danych jednocześnie
+export function useAllData() {
+  return useQuery({
+    queryKey: ['allData'],
+    queryFn: fetchEverything,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 10, // 10 minutes
+    refetchOnWindowFocus: false,
+  });
 }

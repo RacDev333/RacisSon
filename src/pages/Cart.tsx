@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
-import { fetchPromoCodes } from '../services/productsApi';
+import { useAllData } from '../services/productsApi';
 import type { PromoCode } from '../services/productsApi';
 
 const Cart: React.FC = () => {
   const { items, removeItem, clearCart, totalPrice, promoCode, promoDiscount, clearPromoCode } = useCart();
+  const { data: allData } = useAllData();
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [isClearing, setIsClearing] = useState(false);
   const [promoInput, setPromoInput] = useState('');
@@ -15,27 +16,24 @@ const Cart: React.FC = () => {
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      const codes = await fetchPromoCodes();
-      setAvailableCodes(codes);
+    if (allData?.codes) {
+      setAvailableCodes(allData.codes);
       
       // Załaduj zapisany kod z localStorage
       const savedCodeId = localStorage.getItem('promoCodeId');
       if (savedCodeId) {
-        const found = codes.find(c => c.id === parseInt(savedCodeId));
+        const found = allData.codes.find(c => c.id === parseInt(savedCodeId));
         if (found) {
           setAppliedPromo(found);
           setPromoInput(found.code);
           setPromoSuccess(`Kod ${found.code} został zastosowany! Zniżka ${found.sale}%`);
         }
       }
-    };
-    
-    loadData().catch(console.error);
-  }, []);
+    }
+  }, [allData]);
 
   const DISCOUNT_THRESHOLD = 3;
-  const DISCOUNT_PERCENT = 20;
+  const DISCOUNT_PERCENT = 15;
 
   const hasQuantityDiscount = items.length >= DISCOUNT_THRESHOLD;
   const quantityDiscountAmount = hasQuantityDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;

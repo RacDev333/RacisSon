@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { submitOrder } from '../services/ordersApi';
-import { fetchPromoCodes } from '../services/productsApi';
+import { useAllData } from '../services/productsApi';
 import type { PromoCode } from '../services/productsApi';
 
 interface OrderFormData {
@@ -20,6 +20,7 @@ interface OrderFormData {
 
 const Order: React.FC = () => {
   const { items, totalPrice, clearCart } = useCart();
+  const { data: allData } = useAllData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [orderSummary, setOrderSummary] = useState<{ itemCount: number; finalPrice: number } | null>(null);
@@ -31,15 +32,14 @@ const Order: React.FC = () => {
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
 
   useEffect(() => {
-    const loadData = async () => {
-      const codes = await fetchPromoCodes();
-      setAvailableCodes(codes);
+    if (allData?.codes) {
+      setAvailableCodes(allData.codes);
       
       // Sprawdź czy jest zapisany kod w localStorage i zaaplikuj go
       const savedCodeId = localStorage.getItem('promoCodeId');
       
       if (savedCodeId) {
-        const found = codes.find(c => c.id === parseInt(savedCodeId));
+        const found = allData.codes.find(c => c.id === parseInt(savedCodeId));
         
         if (found) {
           setPromoInput(found.code);
@@ -47,10 +47,8 @@ const Order: React.FC = () => {
           setPromoSuccess(`Kod ${found.code} został zastosowany! Zniżka ${found.sale}%`);
         }
       }
-    };
-    
-    loadData().catch(console.error);
-  }, []);
+    }
+  }, [allData]);
 
   const {
     register,
@@ -73,7 +71,7 @@ const Order: React.FC = () => {
   });
 
   const DISCOUNT_THRESHOLD = 3;
-  const DISCOUNT_PERCENT = 20;
+  const DISCOUNT_PERCENT = 15;
   const hasQuantityDiscount = items.length >= DISCOUNT_THRESHOLD;
   const quantityDiscountAmount = hasQuantityDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
   

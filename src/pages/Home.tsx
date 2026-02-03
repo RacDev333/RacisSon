@@ -1,13 +1,10 @@
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { fetchProducts } from '../services/productsApi';
+import { useAllData } from '../services/productsApi';
 
 const Home: React.FC = () => {
-  const { data: products = [] } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-  });
+  const { data: allData } = useAllData();
+  const products = allData?.products || [];
 
   // Czyścimy kod promocyjny gdy użytkownik opuścił proces zakupu
   useEffect(() => {

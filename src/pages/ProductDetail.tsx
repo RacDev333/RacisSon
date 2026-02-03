@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'; // 1. Importy z biblioteki
 import Loading from '../components/Loading';
-import { fetchProducts } from '../services/productsApi';
+import { useAllData } from '../services/productsApi';
 import { useCart } from '../context/CartContext';
 
 const ProductDetail: React.FC = () => {
@@ -23,10 +22,8 @@ const ProductDetail: React.FC = () => {
     localStorage.removeItem('promoDiscount');
   }, []);
 
-  const { data: products = [], isLoading: loading, error } = useQuery({
-    queryKey: ['products'],
-    queryFn: fetchProducts,
-  });
+  const { data: allData, isLoading: loading, error } = useAllData();
+  const products = allData?.products || [];
 
   const product = useMemo(() => {
     if (!id) return null;
