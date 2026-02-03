@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAllData } from '../services/productsApi';
-import type { Broadcast } from '../services/productsApi';
 
 export default function BroadcastBanner() {
   const navigate = useNavigate();

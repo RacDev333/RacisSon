@@ -78,7 +78,7 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setPromoDiscount(0);
   };
 
-  const applyPromoCode = (code: string): boolean => {
+  const applyPromoCode = (_code: string): boolean => {
     // Ta funkcja będzie wywoływana z komponentów Cart/Order z walidacją
     return false; // Placeholder - będzie nadpisane w komponentach
   };

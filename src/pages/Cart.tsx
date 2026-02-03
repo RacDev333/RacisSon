@@ -5,7 +5,7 @@ import { useAllData } from '../services/productsApi';
 import type { PromoCode } from '../services/productsApi';
 
 const Cart: React.FC = () => {
-  const { items, removeItem, clearCart, totalPrice, promoCode, promoDiscount, clearPromoCode } = useCart();
+  const { items, removeItem, clearCart, totalPrice, clearPromoCode } = useCart();
   const { data: allData } = useAllData();
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [isClearing, setIsClearing] = useState(false);
