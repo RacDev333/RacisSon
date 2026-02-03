@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAllData } from '../services/productsApi';
 import type { Broadcast } from '../services/productsApi';
 
 export default function BroadcastBanner() {
+  const navigate = useNavigate();
   const { data: allData } = useAllData();
   const broadcasts = allData?.broadcasts || [];
   const [repeats, setRepeats] = useState(1);
@@ -39,14 +41,18 @@ export default function BroadcastBanner() {
         broadcasts.map((broadcast, idx) => (
           <React.Fragment key={`${keyPrefix}-${i}-${idx}`}>
             {broadcast.link ? (
-              <a 
-                href={broadcast.link} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="inline-block px-4 py-2 text-sm lg:text-base font-medium opacity-95 hover:text-white hover:opacity-100 transition-colors"
+              <button 
+                onClick={() => {
+                  if (broadcast.link && broadcast.link.startsWith('/')) {
+                    navigate(broadcast.link);
+                  } else if (broadcast.link) {
+                    window.open(broadcast.link, '_blank', 'noopener,noreferrer');
+                  }
+                }}
+                className="inline-block px-4 py-2 text-sm lg:text-base font-medium opacity-95 hover:text-white hover:opacity-100 transition-colors bg-none border-none cursor-pointer text-inherit"
               >
                 {broadcast.text}
-              </a>
+              </button>
             ) : (
               <span className="inline-block px-4 py-2 text-sm lg:text-base font-medium opacity-95">
                 {broadcast.text}
