@@ -19,7 +19,9 @@ interface CartContextType {
   itemCount: number;
   promoCode: string | null;
   promoDiscount: number;
+  promoCodeId: number | null;
   applyPromoCode: (code: string) => boolean;
+  setPromoCode: (code: string, discount: number, id: number) => void;
   clearPromoCode: () => void;
 }
 
@@ -37,9 +39,14 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return saved || null;
   });
 
-  const [promoDiscount, setPromoDiscount] = useState<number>(() => {
+  const [promoDiscount, setPromoDiscountState] = useState<number>(() => {
     const saved = localStorage.getItem('promoDiscount');
     return saved ? parseFloat(saved) : 0;
+  });
+
+  const [promoCodeId, setPromoCodeIdState] = useState<number | null>(() => {
+    const saved = localStorage.getItem('promoCodeId');
+    return saved ? parseInt(saved) : null;
   });
 
   // Zapisywanie do localStorage za każdym razem, gdy zmieni się koszyk
@@ -51,11 +58,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     if (promoCode) {
       localStorage.setItem('promoCode', promoCode);
       localStorage.setItem('promoDiscount', promoDiscount.toString());
+      if (promoCodeId) {
+        localStorage.setItem('promoCodeId', promoCodeId.toString());
+      }
     } else {
       localStorage.removeItem('promoCode');
       localStorage.removeItem('promoDiscount');
+      localStorage.removeItem('promoCodeId');
     }
-  }, [promoCode, promoDiscount]);
+  }, [promoCode, promoDiscount, promoCodeId]);
 
   const addItem = (item: CartItem) => {
     setItems((prevItems) => {
@@ -75,7 +86,8 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const clearCart = () => {
     setItems([]);
     setPromoCode(null);
-    setPromoDiscount(0);
+    setPromoDiscountState(0);
+    setPromoCodeIdState(null);
   };
 
   const applyPromoCode = (_code: string): boolean => {
@@ -83,9 +95,16 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return false; // Placeholder - będzie nadpisane w komponentach
   };
 
+  const setPromoCodeHandler = (code: string, discount: number, id: number) => {
+    setPromoCode(code);
+    setPromoDiscountState(discount);
+    setPromoCodeIdState(id);
+  };
+
   const clearPromoCode = () => {
     setPromoCode(null);
-    setPromoDiscount(0);
+    setPromoDiscountState(0);
+    setPromoCodeIdState(null);
   };
 
   const totalPrice = items.reduce((sum, item) => sum + item.price, 0);
@@ -102,7 +121,9 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         itemCount,
         promoCode,
         promoDiscount,
+        promoCodeId,
         applyPromoCode,
+        setPromoCode: setPromoCodeHandler,
         clearPromoCode
       }}
     >

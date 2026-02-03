@@ -19,7 +19,7 @@ interface OrderFormData {
 }
 
 const Order: React.FC = () => {
-  const { items, totalPrice, clearCart } = useCart();
+  const { items, totalPrice, clearCart, promoCodeId, setPromoCode, clearPromoCode } = useCart();
   const { data: allData } = useAllData();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -35,11 +35,9 @@ const Order: React.FC = () => {
     if (allData?.codes) {
       setAvailableCodes(allData.codes);
       
-      // Sprawdź czy jest zapisany kod w localStorage i zaaplikuj go
-      const savedCodeId = localStorage.getItem('promoCodeId');
-      
-      if (savedCodeId) {
-        const found = allData.codes.find(c => c.id === parseInt(savedCodeId));
+      // Sprawdź czy jest zapisany kod w context (localStorage) i zaaplikuj go
+      if (promoCodeId) {
+        const found = allData.codes.find(c => c.id === promoCodeId);
         
         if (found) {
           setPromoInput(found.code);
@@ -48,7 +46,7 @@ const Order: React.FC = () => {
         }
       }
     }
-  }, [allData]);
+  }, [allData, promoCodeId]);
 
   const {
     register,
@@ -93,9 +91,7 @@ const Order: React.FC = () => {
     if (foundCode) {
       setAppliedPromo(foundCode);
       setPromoSuccess(`Kod ${foundCode.code} został zastosowany! Zniżka ${foundCode.sale}%`);
-      localStorage.setItem('promoCodeId', foundCode.id.toString());
-      localStorage.setItem('promoCode', foundCode.code);
-      localStorage.setItem('promoDiscount', foundCode.sale.toString());
+      setPromoCode(foundCode.code, foundCode.sale, foundCode.id);
     } else {
       setPromoError('Nieprawidłowy kod promocyjny');
     }
@@ -106,9 +102,7 @@ const Order: React.FC = () => {
     setPromoInput('');
     setPromoSuccess('');
     setPromoError('');
-    localStorage.removeItem('promoCodeId');
-    localStorage.removeItem('promoCode');
-    localStorage.removeItem('promoDiscount');
+    clearPromoCode();
   };
 
   const onSubmit = async (data: OrderFormData) => {

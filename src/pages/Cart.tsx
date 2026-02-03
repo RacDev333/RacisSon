@@ -5,7 +5,7 @@ import { useAllData } from '../services/productsApi';
 import type { PromoCode } from '../services/productsApi';
 
 const Cart: React.FC = () => {
-  const { items, removeItem, clearCart, totalPrice, clearPromoCode } = useCart();
+  const { items, removeItem, clearCart, totalPrice, promoCodeId, setPromoCode, clearPromoCode } = useCart();
   const { data: allData } = useAllData();
   const [removingItems, setRemovingItems] = useState<Set<string>>(new Set());
   const [isClearing, setIsClearing] = useState(false);
@@ -19,10 +19,9 @@ const Cart: React.FC = () => {
     if (allData?.codes) {
       setAvailableCodes(allData.codes);
       
-      // Załaduj zapisany kod z localStorage
-      const savedCodeId = localStorage.getItem('promoCodeId');
-      if (savedCodeId) {
-        const found = allData.codes.find(c => c.id === parseInt(savedCodeId));
+      // Załaduj zapisany kod z context (localStorage)
+      if (promoCodeId) {
+        const found = allData.codes.find(c => c.id === promoCodeId);
         if (found) {
           setAppliedPromo(found);
           setPromoInput(found.code);
@@ -30,7 +29,7 @@ const Cart: React.FC = () => {
         }
       }
     }
-  }, [allData]);
+  }, [allData, promoCodeId]);
 
   const DISCOUNT_THRESHOLD = 3;
   const DISCOUNT_PERCENT = 15;
@@ -56,9 +55,7 @@ const Cart: React.FC = () => {
     if (foundCode) {
       setAppliedPromo(foundCode);
       setPromoSuccess(`Kod ${foundCode.code} został zastosowany! Zniżka ${foundCode.sale}%`);
-      localStorage.setItem('promoCodeId', foundCode.id.toString());
-      localStorage.setItem('promoCode', foundCode.code);
-      localStorage.setItem('promoDiscount', foundCode.sale.toString());
+      setPromoCode(foundCode.code, foundCode.sale, foundCode.id);
     } else {
       setPromoError('Nieprawidłowy kod promocyjny');
     }
@@ -70,9 +67,6 @@ const Cart: React.FC = () => {
     setPromoSuccess('');
     setPromoError('');
     clearPromoCode();
-    localStorage.removeItem('promoCodeId');
-    localStorage.removeItem('promoCode');
-    localStorage.removeItem('promoDiscount');
   };
 
   const handleRemoveItem = (id: string) => {
