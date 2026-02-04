@@ -15,6 +15,9 @@ interface OrderFormData {
   houseNumber: string;
   city: string;
   postalCode: string;
+  deliveryMethod: 'pickup';
+  paymentMethod: 'cash';
+  notes: string;
   privacyConsent: boolean;
 }
 
@@ -64,6 +67,9 @@ const Order: React.FC = () => {
       houseNumber: '',
       city: '',
       postalCode: '',
+      deliveryMethod: 'pickup',
+      paymentMethod: 'cash',
+      notes: '',
       privacyConsent: false,
     },
   });
@@ -119,8 +125,9 @@ const Order: React.FC = () => {
         postal_code: data.postalCode,
         street: data.street,
         building_number: data.houseNumber,
-        shipping_method: '',
-        shipping_notes: '',
+        shipping_method: data.deliveryMethod === 'pickup' ? 'Odbiór osobisty/doręczenie (Olecko)' : '',
+        payment_method: data.paymentMethod === 'cash' ? 'Gotówka przy odbiorze' : '',
+        shipping_notes: data.notes,
         code_id: appliedPromo ? appliedPromo.id : null,
         product_id: items.map((item) => parseInt(item.id, 10)),
       };
@@ -477,6 +484,118 @@ const Order: React.FC = () => {
                     placeholder="00-001"
                   />
                   {errors.postalCode && <p className="text-red-400 text-sm mt-1">{errors.postalCode.message}</p>}
+                </div>
+              </div>
+            </div>
+
+            {/* Dostawa i płatność */}
+            <div className="glass-card rounded-xl p-6">
+              <h2 className="text-xl font-semibold mb-4">Dostawa i płatność</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Sposób dostawy</label>
+                  <div className="space-y-3">
+                    {/* Odbiór osobisty - DOSTĘPNE */}
+                    <div className="glass-card bg-slate-800/50 border border-gray-700 rounded-lg p-4 transition-colors hover:border-yellow-400/30">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="deliveryPickup"
+                          {...register('deliveryMethod')}
+                          value="pickup"
+                          defaultChecked
+                          className="w-4 h-4 mt-0.5 text-yellow-400 focus:ring-yellow-400 focus:ring-2 cursor-pointer"
+                        />
+                        <label htmlFor="deliveryPickup" className="flex-1 cursor-pointer">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-white">Odbiór osobisty / Doręczenie</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-400/20 text-yellow-400 font-medium">Olecko</span>
+                          </div>
+                          <p className="text-sm text-gray-400">Odbiór osobisty w Olecku lub doręczenie na terenie miasta Olecko</p>
+                          <p className="text-sm text-green-400 font-semibold mt-1">Bezpłatnie</p>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* InPost Paczkomaty - NIEDOSTĘPNE */}
+                    <div className="glass-card bg-slate-800/30 border border-gray-700/50 rounded-lg p-4 opacity-60 relative overflow-hidden">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="deliveryInpost"
+                          value="inpost"
+                          disabled
+                          className="w-4 h-4 mt-0.5 cursor-not-allowed"
+                        />
+                        <label htmlFor="deliveryInpost" className="flex-1 cursor-not-allowed">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-400">InPost Paczkomaty</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">
+                              Wkrótce
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500">Wysyłka do wybranego paczkomatu InPost na terenie całej Polski</p>
+                          <p className="text-sm text-gray-500 mt-1">17 PLN</p>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Sposób płatności</label>
+                  <div className="space-y-3">
+                    {/* Gotówka - DOSTĘPNE */}
+                    <div className="glass-card bg-slate-800/50 border border-gray-700 rounded-lg p-4 transition-colors hover:border-yellow-400/30">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="paymentCash"
+                          {...register('paymentMethod')}
+                          value="cash"
+                          defaultChecked
+                          className="w-4 h-4 mt-0.5 text-yellow-400 focus:ring-yellow-400 focus:ring-2 cursor-pointer"
+                        />
+                        <label htmlFor="paymentCash" className="flex-1 cursor-pointer">
+                          <div className="font-semibold text-white mb-1">Gotówka przy odbiorze</div>
+                          <p className="text-sm text-gray-400">Płatność gotówką przy odbiorze osobistym lub doręczeniu</p>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* BLIK - NIEDOSTĘPNE */}
+                    <div className="glass-card bg-slate-800/30 border border-gray-700/50 rounded-lg p-4 opacity-60 relative overflow-hidden">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="radio"
+                          id="paymentBlik"
+                          value="blik"
+                          disabled
+                          className="w-4 h-4 mt-0.5 cursor-not-allowed"
+                        />
+                        <label htmlFor="paymentBlik" className="flex-1 cursor-not-allowed">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-semibold text-gray-400">BLIK / Przelew online</span>
+                            <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400 font-medium border border-blue-500/30">
+                              Wkrótce
+                            </span>
+                          </div>
+                          <p className="text-sm text-gray-500">Szybka płatność online przez BLIK lub przelew</p>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label htmlFor="notes" className="block text-sm font-medium text-gray-300 mb-2">Uwagi do zamówienia (opcjonalnie)</label>
+                  <textarea
+                    id="notes"
+                    {...register('notes')}
+                    rows={4}
+                    className="w-full px-4 py-2 rounded-lg bg-slate-800 border border-gray-700 focus:border-yellow-400 text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-yellow-400/50 resize-none transition-colors"
+                    placeholder="Tutaj możesz dodać dodatkowe informacje do zamówienia, np. preferowany czas odbioru, szczegóły dotyczące adresu dostawy itp."
+                  />
                 </div>
               </div>
             </div>
