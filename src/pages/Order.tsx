@@ -74,8 +74,8 @@ const Order: React.FC = () => {
     },
   });
 
-  const DISCOUNT_THRESHOLD = 3;
-  const DISCOUNT_PERCENT = 15;
+  const DISCOUNT_THRESHOLD = Number(import.meta.env.VITE_DISCOUNT_THRESHOLD ?? 3);
+  const DISCOUNT_PERCENT = Number(import.meta.env.VITE_DISCOUNT_PERCENT ?? 15);
   const hasQuantityDiscount = items.length >= DISCOUNT_THRESHOLD;
   const quantityDiscountAmount = hasQuantityDiscount ? +(totalPrice * (DISCOUNT_PERCENT / 100)).toFixed(2) : 0;
   

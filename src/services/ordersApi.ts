@@ -10,6 +10,7 @@ export interface OrderData {
   street: string;
   building_number: string;
   shipping_method: string;
+  payment_method: string;
   shipping_notes: string;
   code_id: number | null;
   product_id: number[];
@@ -20,7 +21,7 @@ export interface OrderResponse {
   message: string;
 }
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
 export async function submitOrder(orderData: OrderData): Promise<OrderResponse> {
   try {

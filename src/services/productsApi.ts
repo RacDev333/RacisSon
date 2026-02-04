@@ -32,7 +32,7 @@ export interface EverythingResponse {
   broadcasts: Broadcast[];
 }
 
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 let cache: EverythingResponse | null = null;
 
 // Funkcja do czyszczenia cache (przydatna do debugowania)

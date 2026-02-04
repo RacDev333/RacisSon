@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import Loading from "../components/Loading";
 
-const Contact: React.FC = () => {
+const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
+const Contact: React.FC = () => {
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -17,7 +18,7 @@ const Contact: React.FC = () => {
     setStatus("");
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/send-email", {
+      const res = await fetch(`${API_URL}/contact/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
