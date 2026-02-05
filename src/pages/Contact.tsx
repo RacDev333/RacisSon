@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import Loading from "../components/Loading";
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
 
@@ -100,47 +99,52 @@ const Contact: React.FC = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="gradient-btn px-4 py-2 rounded-full text-black font-semibold relative"
+                    className="gradient-btn cursor-pointer px-5 h-10 min-w-[140px] rounded-full text-black font-semibold inline-flex items-center justify-center relative disabled:opacity-70"
+                    aria-busy={loading}
                   >
-                    {loading ? (
-                      <div className="w-5 h-5">
-                        <Loading />
-                      </div>
-                    ) : (
-                      "Wyślij"
+                    <span>Wyślij</span>
+                    {loading && (
+                      <span
+                        className="absolute left-4 top-1/2 -translate-y-1/2"
+                        aria-hidden="true"
+                      >
+                        <span className="w-4 h-4 rounded-full border-2 border-black/30 border-t-black animate-spin block" />
+                      </span>
                     )}
                   </button>
                   <Link to="/products" className="text-sm text-gray-300">Powrót do produktów</Link>
                 </div>
 
-                {status && (
-                  <div
-                    className={`mt-4 p-4 rounded-lg flex items-start gap-3 animate-fadeIn ${
-                      status.includes("wysłana")
-                        ? "bg-green-500/10 border border-green-500/30"
-                        : "bg-red-500/10 border border-red-500/30"
-                    }`}
-                  >
-                    <div className="flex-shrink-0 mt-0.5">
-                      {status.includes("wysłana") ? (
-                        <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-                        </svg>
-                      )}
-                    </div>
-                    <p
-                      className={`text-sm font-medium ${
-                        status.includes("wysłana") ? "text-green-400" : "text-red-400"
+                <div className="mt-4 min-h-[64px]">
+                  {status && (
+                    <div
+                      className={`p-4 rounded-lg flex items-start gap-3 animate-fadeIn ${
+                        status.includes("wysłana")
+                          ? "bg-green-500/10 border border-green-500/30"
+                          : "bg-red-500/10 border border-red-500/30"
                       }`}
                     >
-                      {status}
-                    </p>
-                  </div>
-                )}
+                      <div className="flex-shrink-0 mt-0.5">
+                        {status.includes("wysłana") ? (
+                          <svg className="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
+                      </div>
+                      <p
+                        className={`text-sm font-medium ${
+                          status.includes("wysłana") ? "text-green-400" : "text-red-400"
+                        }`}
+                      >
+                        {status}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </form>
             </div>
           </div>
