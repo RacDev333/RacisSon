@@ -5,7 +5,7 @@ import { useAllData } from '../services/productsApi';
 
 const Products: React.FC = () => {
   const { data: allData, isLoading: loading, error } = useAllData();
-  const products = allData?.products || [];
+  const products = (allData?.products || []).sort((a, b) => a.id - b.id);
 
   // Czyścimy kod promocyjny gdy użytkownik opuścił proces zakupu
   useEffect(() => {

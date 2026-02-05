@@ -53,13 +53,13 @@ const Contact: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <h3 className="font-semibold mb-2">Adres</h3>
-            <p className="text-gray-300">ul. Przykładowa 12<br/>00-000 Miasto</p>
+            <p className="text-gray-300">Plac Wolności<br/>19-400 Olecko</p>
 
             <h3 className="font-semibold mt-4 mb-2">Telefon</h3>
-            <p className="text-gray-300">+48 600 000 000</p>
+            <p className="text-gray-300">CHWILOWO NIEDOSTĘPNE</p>
 
             <h3 className="font-semibold mt-4 mb-2">E-mail</h3>
-            <p className="text-gray-300">RacisAndSon@gmail.com</p>
+            <p className="text-gray-300">kontakt@racis.store</p>
           </div>
 
           <div>

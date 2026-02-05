@@ -30,7 +30,7 @@ const Home: React.FC = () => {
           <h1 className="text-4xl lg:text-5xl font-extrabold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-yellow-300 to-pink-500">Koszulki Piłkarskie Specjalnie Dla Ciebie!</h1>
           <p className="text-gray-300 mb-6">Każdy fan piłki nożnej wie, jak ważna jest koszulka, która łączy wygodę z pasją. 
             Nasze koszulki piłkarskie pozwalają cieszyć się ulubioną dyscypliną zarówno na stadionie, jak i na co dzień. 
-            Wszystko to w korzystnych cenach, aż żal nie przetestować! </p>
+            Wszystko to w korzystnych cenach, aż żal nie sprawdziź! </p>
 
           <div className="flex gap-4 items-center">
             <Link to="/products" className="gradient-btn px-6 py-3 rounded-full font-semibold text-black">Sprawdź koszulki</Link>
